@@ -143,3 +143,12 @@ CMakeListsPrivate.txt
 
 #CLion
 cmake-build-*
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+.cproject
+.project
+.settings/
+.vscode/.browse.c_cpp.db*
+.vscode/launch.json
