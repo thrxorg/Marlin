@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -31,32 +31,29 @@
   #include "../../../MarlinCore.h"
   #include "../../../gcode/gcode.h"
 
-  #include "../../../module/configuration_store.h"
+  #include "../../../module/settings.h"
   #include "../../../module/planner.h"
   #include "../../../module/motion.h"
   #include "../../../module/probe.h"
 
   #if ENABLED(EXTENSIBLE_UI)
-    #include "../../../lcd/extensible_ui/ui_api.h"
+    #include "../../../lcd/extui/ui_api.h"
   #endif
 
   #include "math.h"
 
-  void unified_bed_leveling::echo_name() {
-    SERIAL_ECHOPGM("Unified Bed Leveling");
-  }
+  void unified_bed_leveling::echo_name() { SERIAL_ECHOPGM("Unified Bed Leveling"); }
 
   void unified_bed_leveling::report_current_mesh() {
     if (!leveling_is_valid()) return;
-    SERIAL_ECHO_MSG("  G29 I99");
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-      for (uint8_t y = 0;  y < GRID_MAX_POINTS_Y; y++)
-        if (!isnan(z_values[x][y])) {
-          SERIAL_ECHO_START();
-          SERIAL_ECHOPAIR("  M421 I", int(x), " J", int(y));
-          SERIAL_ECHOLNPAIR_F_P(SP_Z_STR, z_values[x][y], 4);
-          serial_delay(75); // Prevent Printrun from exploding
-        }
+    SERIAL_ECHO_MSG("  G29 I999");
+    GRID_LOOP(x, y)
+      if (!isnan(z_values[x][y])) {
+        SERIAL_ECHO_START();
+        SERIAL_ECHOPAIR("  M421 I", int(x), " J", int(y));
+        SERIAL_ECHOLNPAIR_F_P(SP_Z_STR, z_values[x][y], 4);
+        serial_delay(75); // Prevent Printrun from exploding
+      }
   }
 
   void unified_bed_leveling::report_state() {
@@ -85,15 +82,9 @@
     _GRIDPOS(Y, 12), _GRIDPOS(Y, 13), _GRIDPOS(Y, 14), _GRIDPOS(Y, 15)
   );
 
-  #if HAS_LCD_MENU
-    bool unified_bed_leveling::lcd_map_control = false;
-  #endif
+  volatile int16_t unified_bed_leveling::encoder_diff;
 
-  volatile int unified_bed_leveling::encoder_diff;
-
-  unified_bed_leveling::unified_bed_leveling() {
-    reset();
-  }
+  unified_bed_leveling::unified_bed_leveling() { reset(); }
 
   void unified_bed_leveling::reset() {
     const bool was_enabled = planner.leveling_active;
@@ -101,9 +92,7 @@
     storage_slot = -1;
     ZERO(z_values);
     #if ENABLED(EXTENSIBLE_UI)
-      for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++)
-        for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++)
-          ExtUI::onMeshUpdate(x, y, 0);
+      GRID_LOOP(x, y) ExtUI::onMeshUpdate(x, y, 0);
     #endif
     if (was_enabled) report_current_position();
   }
@@ -114,15 +103,36 @@
   }
 
   void unified_bed_leveling::set_all_mesh_points_to_value(const float value) {
-    for (uint8_t x = 0; x < GRID_MAX_POINTS_X; x++) {
-      for (uint8_t y = 0; y < GRID_MAX_POINTS_Y; y++) {
-        z_values[x][y] = value;
-        #if ENABLED(EXTENSIBLE_UI)
-          ExtUI::onMeshUpdate(x, y, value);
-        #endif
-      }
+    GRID_LOOP(x, y) {
+      z_values[x][y] = value;
+      TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(x, y, value));
     }
   }
+
+  #if ENABLED(OPTIMIZED_MESH_STORAGE)
+
+    constexpr float mesh_store_scaling = 1000;
+    constexpr int16_t Z_STEPS_NAN = INT16_MAX;
+
+    void unified_bed_leveling::set_store_from_mesh(const bed_mesh_t &in_values, mesh_store_t &stored_values) {
+      auto z_to_store = [](const float &z) {
+        if (isnan(z)) return Z_STEPS_NAN;
+        const int32_t z_scaled = TRUNC(z * mesh_store_scaling);
+        if (z_scaled == Z_STEPS_NAN || !WITHIN(z_scaled, INT16_MIN, INT16_MAX))
+          return Z_STEPS_NAN; // If Z is out of range, return our custom 'NaN'
+        return int16_t(z_scaled);
+      };
+      GRID_LOOP(x, y) stored_values[x][y] = z_to_store(in_values[x][y]);
+    }
+
+    void unified_bed_leveling::set_mesh_from_store(const mesh_store_t &stored_values, bed_mesh_t &out_values) {
+      auto store_to_z = [](const int16_t z_scaled) {
+        return z_scaled == Z_STEPS_NAN ? NAN : z_scaled / mesh_store_scaling;
+      };
+      GRID_LOOP(x, y) out_values[x][y] = store_to_z(stored_values[x][y]);
+    }
+
+  #endif // OPTIMIZED_MESH_STORAGE
 
   static void serial_echo_xy(const uint8_t sp, const int16_t x, const int16_t y) {
     SERIAL_ECHO_SP(sp);
@@ -138,7 +148,7 @@
 
   static void serial_echo_column_labels(const uint8_t sp) {
     SERIAL_ECHO_SP(7);
-    for (int8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
+    LOOP_L_N(i, GRID_MAX_POINTS_X) {
       if (i < 10) SERIAL_CHAR(' ');
       SERIAL_ECHO(i);
       SERIAL_ECHO_SP(sp);
@@ -190,7 +200,7 @@
       }
 
       // Row Values (I indexes)
-      for (uint8_t i = 0; i < GRID_MAX_POINTS_X; i++) {
+      LOOP_L_N(i, GRID_MAX_POINTS_X) {
 
         // Opening Brace or Space
         const bool is_current = i == curr.x && j == curr.y;
@@ -213,7 +223,7 @@
         if (human) SERIAL_CHAR(is_current ? ']' : ' ');
 
         SERIAL_FLUSHTX();
-        idle();
+        idle_no_sleep();
       }
       if (!lcd) SERIAL_EOL();
 

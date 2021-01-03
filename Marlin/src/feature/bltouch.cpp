@@ -16,7 +16,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  */
 
@@ -31,6 +31,7 @@ BLTouch bltouch;
 bool BLTouch::last_written_mode; // Initialized by settings.load, 0 = Open Drain; 1 = 5V Drain
 
 #include "../module/servo.h"
+#include "../module/probe.h"
 
 void stop();
 
@@ -73,20 +74,12 @@ void BLTouch::init(const bool set_voltage/*=false*/) {
       );
     }
 
-    const bool should_set = last_written_mode != (false
-      #if ENABLED(BLTOUCH_SET_5V_MODE)
-        || true
-      #endif
-    );
+    const bool should_set = last_written_mode != ENABLED(BLTOUCH_SET_5V_MODE);
 
   #endif
 
   if (should_set && set_voltage)
-    mode_conv_proc((false
-      #if ENABLED(BLTOUCH_SET_5V_MODE)
-        || true
-      #endif
-    ));
+    mode_conv_proc(ENABLED(BLTOUCH_SET_5V_MODE));
 }
 
 void BLTouch::clear() {
@@ -98,15 +91,7 @@ void BLTouch::clear() {
   _stow();     // STOW to be ready for meaningful work. Could fail, don't care
 }
 
-bool BLTouch::triggered() {
-  return (
-    #if ENABLED(Z_MIN_PROBE_USES_Z_MIN_ENDSTOP_PIN)
-      READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING
-    #else
-      READ(Z_MIN_PROBE_PIN) != Z_MIN_PROBE_ENDSTOP_INVERTING
-    #endif
-  );
-}
+bool BLTouch::triggered() { return PROBE_TRIGGERED(); }
 
 bool BLTouch::deploy_proc() {
   // Do a DEPLOY
@@ -132,9 +117,7 @@ bool BLTouch::deploy_proc() {
   }
 
   // One of the recommended ANTClabs ways to probe, using SW MODE
-  #if ENABLED(BLTOUCH_FORCE_SW_MODE)
-   _set_SW_mode();
-  #endif
+  TERN_(BLTOUCH_FORCE_SW_MODE, _set_SW_mode());
 
   // Now the probe is ready to issue a 10ms pulse when the pin goes up.
   // The trigger STOW (see motion.cpp for example) will pull up the probes pin as soon as the pulse
