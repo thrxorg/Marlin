@@ -119,7 +119,7 @@ namespace Language_cz {
   PROGMEM Language_Str MSG_MESH_Y                          = _UxGT("Index Y");
   PROGMEM Language_Str MSG_MESH_EDIT_Z                     = _UxGT("Hodnota Z");
 
-  PROGMEM Language_Str MSG_USER_MENU                       = _UxGT("Vlastní příkazy");
+  PROGMEM Language_Str MSG_CUSTOM_COMMANDS                 = _UxGT("Vlastní příkazy");
   PROGMEM Language_Str MSG_M48_TEST                        = _UxGT("M48 test sondy");
   PROGMEM Language_Str MSG_M48_POINT                       = _UxGT("M48 bod");
   PROGMEM Language_Str MSG_M48_DEVIATION                   = _UxGT("Odchylka");
@@ -241,6 +241,7 @@ namespace Language_cz {
   PROGMEM Language_Str MSG_MOVE_01MM                       = _UxGT("Posunout o 0,1mm");
   PROGMEM Language_Str MSG_MOVE_1MM                        = _UxGT("Posunout o 1mm");
   PROGMEM Language_Str MSG_MOVE_10MM                       = _UxGT("Posunout o 10mm");
+  PROGMEM Language_Str MSG_MOVE_100MM                      = _UxGT("Posunout o 100mm");
   PROGMEM Language_Str MSG_SPEED                           = _UxGT("Rychlost");
   PROGMEM Language_Str MSG_BED_Z                           = _UxGT("Výška podl.");
   PROGMEM Language_Str MSG_NOZZLE                          = _UxGT("Tryska");

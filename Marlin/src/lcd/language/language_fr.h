@@ -113,7 +113,7 @@ namespace Language_fr {
   PROGMEM Language_Str MSG_MESH_X                          = _UxGT("Index X");
   PROGMEM Language_Str MSG_MESH_Y                          = _UxGT("Index Y");
   PROGMEM Language_Str MSG_MESH_EDIT_Z                     = _UxGT("Valeur Z");
-  PROGMEM Language_Str MSG_USER_MENU                       = _UxGT("Commandes perso");
+  PROGMEM Language_Str MSG_CUSTOM_COMMANDS                 = _UxGT("Commandes perso");
 
   PROGMEM Language_Str MSG_LCD_TILTING_MESH                = _UxGT("Mesure point");
   PROGMEM Language_Str MSG_M48_TEST                        = _UxGT("Ecart sonde Z M48");
@@ -235,6 +235,7 @@ namespace Language_fr {
   PROGMEM Language_Str MSG_MOVE_01MM                       = _UxGT("Déplacer 0.1mm");
   PROGMEM Language_Str MSG_MOVE_1MM                        = _UxGT("Déplacer 1mm");
   PROGMEM Language_Str MSG_MOVE_10MM                       = _UxGT("Déplacer 10mm");
+  PROGMEM Language_Str MSG_MOVE_100MM                      = _UxGT("Déplacer 100mm");
   PROGMEM Language_Str MSG_SPEED                           = _UxGT("Vitesse");
   PROGMEM Language_Str MSG_BED_Z                           = _UxGT("Lit Z");
   PROGMEM Language_Str MSG_NOZZLE                          = _UxGT("Buse");

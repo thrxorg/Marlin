@@ -133,11 +133,11 @@
 #define TEMP_1_PIN                             1  // Analog Input
 #define TEMP_BED_PIN                           2  // Analog Input
 
-// SPI for Max6675 or Max31855 Thermocouple
+// SPI for MAX Thermocouple
 #if DISABLED(SDSUPPORT)
-  #define MAX6675_SS_PIN                      66  // Don't use 53 if using Display/SD card
+  #define TEMP_0_CS_PIN                       66  // Don't use 53 if using Display/SD card
 #else
-  #define MAX6675_SS_PIN                      66  // Don't use 49 (SD_DETECT_PIN)
+  #define TEMP_0_CS_PIN                       66  // Don't use 49 (SD_DETECT_PIN)
 #endif
 
 //
@@ -459,10 +459,10 @@
     #if !IS_NEWPANEL
       // Buttons attached to a shift register
       // Not wired yet
-      //#define SHIFT_CLK                     38
-      //#define SHIFT_LD                      42
-      //#define SHIFT_OUT                     40
-      //#define SHIFT_EN                      17
+      //#define SHIFT_CLK_PIN                 38
+      //#define SHIFT_LD_PIN                  42
+      //#define SHIFT_OUT_PIN                 40
+      //#define SHIFT_EN_PIN                  17
     #endif
 
   #endif
@@ -608,9 +608,9 @@
 
       // Buttons are directly attached to AUX-2
       #if IS_RRW_KEYPAD
-        #define SHIFT_OUT                     40
-        #define SHIFT_CLK                     44
-        #define SHIFT_LD                      42
+        #define SHIFT_OUT_PIN                 40
+        #define SHIFT_CLK_PIN                 44
+        #define SHIFT_LD_PIN                  42
         #define BTN_EN1                       64
         #define BTN_EN2                       59
         #define BTN_ENC                       63
